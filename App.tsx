@@ -224,10 +224,6 @@ const Navbar: React.FC = () => {
                     src="/logo.png" 
                     alt="Tim Shoemake Logo" 
                     className="w-full h-full object-contain"
-                    onError={(e) => {
-                        e.currentTarget.src = "https://timshoemake.io/wp-content/uploads/2017/07/shoemaker_repair_blue@2x-2.png";
-                        e.currentTarget.onerror = null;
-                    }}
                  />
             </div>
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
