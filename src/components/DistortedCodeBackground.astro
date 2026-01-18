@@ -1,0 +1,39 @@
+---
+const codeSnippet = `
+  import { Future } from '@timshoemake/core';
+  import { AI, Cloud, Scale } from 'modern-stack';
+
+  class SolutionArchitect extends Engineer {
+    constructor() {
+      super();
+      this.skills = ['React', 'Node', 'C#', 'AWS'];
+      this.passion = true;
+    }
+
+    async buildNextBigThing(requirements) {
+      const architecture = await this.design(requirements);
+      const production = await this.deploy(architecture);
+      return production.scale(Infinity);
+    }
+  }
+
+  // Optimizing business logic...
+  // Integrating API endpoints...
+  // Automating workflows...
+  `.repeat(15);
+---
+
+<div class="absolute inset-0 overflow-hidden pointer-events-none select-none">
+  <div
+    class="absolute -top-[20%] -left-[10%] w-[130%] text-slate-800/20 text-[10px] sm:text-xs font-mono leading-4 whitespace-pre transform -rotate-[8deg] blur-[0.5px]"
+  >
+    {codeSnippet}
+  </div>
+  <div
+    class="absolute -top-[10%] -left-[5%] w-[130%] text-primary/5 text-[12px] sm:text-sm font-mono leading-6 whitespace-pre transform -rotate-[5deg] blur-[1px]"
+  >
+    {codeSnippet}
+  </div>
+  <div class="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background"></div>
+  <div class="absolute inset-0 bg-gradient-to-r from-background via-transparent to-background"></div>
+</div>

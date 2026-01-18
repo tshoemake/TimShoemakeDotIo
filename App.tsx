@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext, createContext } from 'react';
-import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { HelmetProvider, Helmet } from 'react-helmet-async';
 import { Menu, X, Github, Linkedin, Mail, ArrowRight, Code, Zap, Layers, Globe, ChevronDown, Send, Check, Terminal } from 'lucide-react';
 import logoImage from './logo.png';
 import { ApiIntegrationDemo, AutomationDemo, CustomAppDemo, InfoSiteDemo } from './components/AnimatedDemos';
@@ -356,6 +357,10 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-24">
+      <Helmet>
+        <title>Tim Shoemake | Senior AI/Software Engineer</title>
+        <meta name="description" content="Senior AI/Software Engineer specializing in API integrations, business automation, and custom web applications. Available for contract work." />
+      </Helmet>
       {/* Hero Section */}
       <section className="relative pt-36 pb-24 px-6 overflow-hidden bg-background">
         
@@ -497,6 +502,10 @@ const LandingPage: React.FC = () => {
 const ServicesPage: React.FC = () => {
     return (
         <div className="pt-32 px-6 max-w-5xl mx-auto">
+            <Helmet>
+                <title>Services | Tim Shoemake - API Integrations, Automation & Custom Apps</title>
+                <meta name="description" content="Engineering services including API integrations, business process automation, custom web applications, and high-converting business landing pages." />
+            </Helmet>
             <div className="text-center mb-16">
                 <h1 className="text-4xl font-bold text-white mb-4">Services</h1>
                 <p className="text-slate-400 max-w-2xl mx-auto">
@@ -592,6 +601,10 @@ const ServicesPage: React.FC = () => {
 
 const ResumePage: React.FC = () => (
     <div className="pt-24 px-4 pb-20">
+        <Helmet>
+            <title>Resume | Tim Shoemake - Senior AI/Software Engineer</title>
+            <meta name="description" content="Professional resume of Tim Shoemake. 15+ years of software engineering experience in FinTech, Healthcare, Insurance, and more." />
+        </Helmet>
         <ResumeContent />
     </div>
 );
@@ -600,7 +613,7 @@ const ResumePage: React.FC = () => (
 
 const AppContent: React.FC = () => {
   return (
-    <HashRouter>
+    <BrowserRouter>
       <div className="min-h-screen flex flex-col font-sans selection:bg-primary/30 selection:text-white">
         <Navbar />
         <main className="flex-grow">
@@ -613,7 +626,7 @@ const AppContent: React.FC = () => {
         <Footer />
         <ContactModal />
       </div>
-    </HashRouter>
+    </BrowserRouter>
   );
 };
 
@@ -624,9 +637,11 @@ const App: React.FC = () => {
   const closeContact = () => setIsOpen(false);
 
   return (
-    <ContactContext.Provider value={{ isOpen, openContact, closeContact }}>
-        <AppContent />
-    </ContactContext.Provider>
+    <HelmetProvider>
+      <ContactContext.Provider value={{ isOpen, openContact, closeContact }}>
+          <AppContent />
+      </ContactContext.Provider>
+    </HelmetProvider>
   );
 };
 
