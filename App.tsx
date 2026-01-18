@@ -1,8 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext, createContext } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Menu, X, Github, Linkedin, Mail, ArrowRight, Code, Zap, Layers, Globe, ChevronDown, Send, Check } from 'lucide-react';
 import { ApiIntegrationDemo, AutomationDemo, CustomAppDemo, InfoSiteDemo } from './components/AnimatedDemos';
 import { ResumeContent } from './components/ResumeData';
+
+// --- Context & Hooks ---
+
+interface ContactContextType {
+  isOpen: boolean;
+  openContact: () => void;
+  closeContact: () => void;
+}
+
+const ContactContext = createContext<ContactContextType>({
+  isOpen: false,
+  openContact: () => {},
+  closeContact: () => {},
+});
+
+const useContact = () => useContext(ContactContext);
 
 // --- Shared Components ---
 
@@ -27,10 +43,151 @@ const Button: React.FC<{
   );
 };
 
+const ContactModal: React.FC = () => {
+  const { isOpen, closeContact } = useContact();
+  const [topic, setTopic] = useState('Integration');
+  const [submitted, setSubmitted] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; }
+  }, [isOpen]);
+
+  const handleClose = () => {
+      setIsClosing(true);
+      setTimeout(() => {
+          setIsClosing(false);
+          setSubmitted(false); // Reset form on close
+          closeContact();
+      }, 200);
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      const myForm = e.currentTarget;
+      const formData = new FormData(myForm);
+      const searchParams = new URLSearchParams();
+      for (const pair of formData.entries()) {
+          searchParams.append(pair[0], pair[1] as string);
+      }
+
+      try {
+          await fetch("/", {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body: searchParams.toString(),
+          });
+          setSubmitted(true);
+      } catch (error) {
+          console.error("Form submission error:", error);
+          alert("Sorry, there was an issue sending your message.");
+      }
+  };
+
+  if (!isOpen && !isClosing) return null;
+
+  return (
+    <div className={`fixed inset-0 z-[100] flex items-center justify-center px-4 py-6 sm:p-6 transition-opacity duration-200 ${isOpen && !isClosing ? 'opacity-100' : 'opacity-0'}`}>
+      {/* Backdrop with Blur */}
+      <div 
+        className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" 
+        onClick={handleClose}
+      />
+      
+      {/* Modal Container */}
+      <div 
+        className={`relative bg-surface border border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-full transition-all duration-200 transform ${isOpen && !isClosing ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'}`}
+      >
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-slate-800 bg-slate-900/50">
+             <div>
+                <h2 className="text-xl font-bold text-white">Let's work together</h2>
+                <p className="text-xs text-slate-400 mt-1">Tell me about your project.</p>
+             </div>
+             <button onClick={handleClose} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors">
+                 <X size={20} />
+             </button>
+          </div>
+
+          {/* Body */}
+          <div className="p-6 overflow-y-auto custom-scrollbar">
+            {submitted ? (
+                 <div className="text-center py-10 animate-in fade-in zoom-in duration-300">
+                    <div className="w-16 h-16 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Check size={32} />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">Message Sent!</h3>
+                    <p className="text-slate-400 mb-6 text-sm">Thanks for reaching out. I'll get back to you regarding your {topic} inquiry shortly.</p>
+                    <Button onClick={handleClose} variant="outline" className="mx-auto">Close</Button>
+                </div>
+            ) : (
+                <form 
+                    onSubmit={handleSubmit} 
+                    className="space-y-5"
+                    name="contact"
+                    method="post"
+                    data-netlify="true"
+                    data-netlify-honeypot="bot-field"
+                >
+                    <input type="hidden" name="form-name" value="contact" />
+                    <input type="hidden" name="bot-field" />
+
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Topic</label>
+                        <div className="relative">
+                            <select 
+                                name="topic" 
+                                value={topic} 
+                                onChange={(e) => setTopic(e.target.value)}
+                                className="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-lg p-3 appearance-none focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                            >
+                                <option value="Integration">API Integration</option>
+                                <option value="Automation">Business Process Automation</option>
+                                <option value="Custom App">Custom Web Application</option>
+                                <option value="Website">Informational Website</option>
+                                <option value="Other">Other Inquiry</option>
+                            </select>
+                            <ChevronDown className="absolute right-4 top-3.5 text-slate-500 pointer-events-none" size={16} />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Name</label>
+                            <input required type="text" name="name" placeholder="Jane Doe" className="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-lg p-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-slate-600" />
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Email</label>
+                            <input required type="email" name="email" placeholder="jane@company.com" className="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-lg p-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-slate-600" />
+                        </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Message</label>
+                        <textarea required name="message" rows={4} placeholder="How can I help you?" className="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-lg p-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-slate-600 resize-none"></textarea>
+                    </div>
+
+                    <Button type="submit" className="w-full justify-center py-3 text-sm group mt-2">
+                        Send Message <Send size={16} className="group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                </form>
+            )}
+          </div>
+      </div>
+    </div>
+  );
+};
+
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const { openContact } = useContact();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -60,7 +217,7 @@ const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-20">
           
-          {/* Logo Section - Larger icon size */}
+          {/* Logo Section */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="h-14 w-14 flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105">
                  <img src="https://timshoemake.io/wp-content/uploads/2017/07/shoemaker_repair_blue@2x-2.png" alt="Tim Shoemake Logo" className="w-full h-full object-contain" />
@@ -86,9 +243,7 @@ const Navbar: React.FC = () => {
             
             <SocialLinks />
 
-            <Link to="/contact">
-                <Button variant="primary" className="py-2 px-5 text-xs ml-2">Let's Talk</Button>
-            </Link>
+            <Button variant="primary" className="py-2 px-5 text-xs ml-2" onClick={openContact}>Let's Talk</Button>
           </div>
 
           {/* Mobile Toggle */}
@@ -111,9 +266,9 @@ const Navbar: React.FC = () => {
               {link.name}
             </Link>
           ))}
-          <Link to="/contact" onClick={() => setIsOpen(false)} className="py-2">
+          <button onClick={() => { setIsOpen(false); openContact(); }} className="text-left text-slate-300 py-2 hover:text-primary">
             Contact Me
-          </Link>
+          </button>
           <div className="flex gap-6 py-2">
              <a href="https://github.com/timshoemake" target="_blank" rel="noreferrer" className="text-slate-400"><Github /></a>
              <a href="https://linkedin.com/in/timshoemake" target="_blank" rel="noreferrer" className="text-slate-400"><Linkedin /></a>
@@ -140,7 +295,6 @@ const Footer: React.FC = () => (
 // --- Background Component ---
 
 const DistortedCodeBackground: React.FC = () => {
-    // Generate a long string of code-like text
     const codeSnippet = `
   import { Future } from '@timshoemake/core';
   import { AI, Cloud, Scale } from 'modern-stack';
@@ -166,21 +320,16 @@ const DistortedCodeBackground: React.FC = () => {
   
     return (
       <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
-        {/* Layer 1: Base dark code */}
         <div 
             className="absolute -top-[20%] -left-[10%] w-[130%] text-slate-800/20 text-[10px] sm:text-xs font-mono leading-4 whitespace-pre transform -rotate-[8deg] blur-[0.5px]"
         >
             {codeSnippet}
         </div>
-        
-        {/* Layer 2: Highlighted code (primary color) with blur */}
         <div 
             className="absolute -top-[10%] -left-[5%] w-[130%] text-primary/5 text-[12px] sm:text-sm font-mono leading-6 whitespace-pre transform -rotate-[5deg] blur-[1px]"
         >
             {codeSnippet}
         </div>
-  
-        {/* Vignette/Fade Overlays */}
         <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
         <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-background" />
       </div>
@@ -190,9 +339,11 @@ const DistortedCodeBackground: React.FC = () => {
 // --- Page Components ---
 
 const LandingPage: React.FC = () => {
+  const { openContact } = useContact();
+
   return (
     <div className="flex flex-col gap-24">
-      {/* Hero Section - Redesigned Background */}
+      {/* Hero Section */}
       <section className="relative pt-36 pb-24 px-6 overflow-hidden bg-background">
         
         <DistortedCodeBackground />
@@ -212,14 +363,12 @@ const LandingPage: React.FC = () => {
 
             {/* Terminal Card */}
             <div className="bg-slate-900 border border-slate-700/50 rounded-lg shadow-2xl p-6 md:p-8 font-mono overflow-hidden relative group">
-                {/* Window Controls */}
                 <div className="flex gap-2 mb-6">
                     <div className="w-3 h-3 rounded-full bg-red-500/80" />
                     <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
                     <div className="w-3 h-3 rounded-full bg-green-500/80" />
                 </div>
                 
-                {/* Content */}
                 <div className="space-y-4">
                     <div className="flex flex-col md:flex-row md:items-center gap-2 text-sm md:text-base">
                         <span className="text-green-400 font-bold">guest@portfolio:~$</span>
@@ -249,7 +398,6 @@ const LandingPage: React.FC = () => {
               </Link>
             </div>
             
-            {/* Social Proof / Tech Stack */}
             <div className="pt-8 border-t border-slate-800/50 mt-12 text-center">
                 <p className="text-xs text-slate-500 font-mono mb-4 uppercase tracking-widest">Trusted Technologies</p>
                 <div className="flex flex-wrap justify-center gap-8 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
@@ -261,7 +409,7 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Featured Service Preview (Bento Grid) */}
+      {/* Featured Service Preview */}
       <section className="px-6 max-w-7xl mx-auto w-full">
          <div className="mb-12 text-center">
             <h2 className="text-3xl font-bold text-white mb-4">Services</h2>
@@ -310,7 +458,7 @@ const LandingPage: React.FC = () => {
                         </div>
                         <h3 className="text-xl font-bold text-white mb-2">Business Landing Pages</h3>
                         <p className="text-slate-400 mb-6">High-performance sites designed to convert. I build fast, SEO-optimized landing pages that generate leads and grow your business. Showcasing work for <a href="https://crossfit601.com" className="text-primary hover:underline">CrossFit 601</a>, <a href="https://mapinme.com" className="text-primary hover:underline">MapInMe</a>, and <a href="https://ser247.com" className="text-primary hover:underline">SER247</a>.</p>
-                        <Link to="/contact"><span className="text-primary hover:text-white transition-colors cursor-pointer font-medium text-sm flex items-center gap-1">Start a project <ArrowRight size={14} /></span></Link>
+                        <button onClick={openContact} className="text-primary hover:text-white transition-colors cursor-pointer font-medium text-sm flex items-center gap-1 focus:outline-none">Start a project <ArrowRight size={14} /></button>
                     </div>
                     <InfoSiteDemo />
                 </div>
@@ -325,9 +473,7 @@ const LandingPage: React.FC = () => {
              <div className="relative z-10">
                 <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Ready to streamline your workflow?</h2>
                 <p className="text-slate-300 mb-8 max-w-xl mx-auto">Whether you need a complex API integration or a simple landing page, I bring engineering rigor to every project.</p>
-                <Link to="/contact">
-                    <Button className="mx-auto px-8 py-3 text-base">Get in Touch</Button>
-                </Link>
+                <Button onClick={openContact} className="mx-auto px-8 py-3 text-base">Get in Touch</Button>
              </div>
         </div>
       </section>
@@ -362,7 +508,7 @@ const ServicesPage: React.FC = () => {
                         </p>
                         <ul className="space-y-2 mb-6">
                             <li className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-green-500" /> Webhook verification & security</li>
-                            <li className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-green-500" /> Event transformation (e.g. Commit -&gt; Notification)</li>
+                            <li className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-green-500" /> Event transformation (e.g. Commit -> Notification)</li>
                             <li className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-green-500" /> Reliable delivery & retry logic</li>
                         </ul>
                     </div>
@@ -399,13 +545,14 @@ const ServicesPage: React.FC = () => {
                         </h2>
                         <p className="text-slate-400 leading-relaxed mb-6">
                             When off-the-shelf software doesn't fit, I build custom React/.NET applications tailored to your industry. 
-                            Specializing in replacing legacy paper processes or expensive SaaS with owned software.
+                            I have deep experience delivering scalable software across multiple domains:
                         </p>
                          <ul className="space-y-2 mb-6">
-                            <li className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-green-500" /> Home Inspection Software</li>
-                            <li className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-green-500" /> Financial Integrations</li>
-                            <li className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-green-500" /> Custom E-Signature Platforms (Docusign Alternative)</li>
-                            <li className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-green-500" /> Insurance Claims Dashboards</li>
+                            <li className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-green-500" /> FinTech & Lending</li>
+                            <li className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-green-500" /> Healthcare & HIPAA Compliance</li>
+                            <li className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-green-500" /> Insurance & Risk Management</li>
+                            <li className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-green-500" /> Hospitality & Retail</li>
+                            <li className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-green-500" /> Government & Public Sector</li>
                         </ul>
                     </div>
                 </div>
@@ -436,118 +583,9 @@ const ResumePage: React.FC = () => (
     </div>
 );
 
-const ContactPage: React.FC = () => {
-    const [topic, setTopic] = useState('Integration');
-    const [submitted, setSubmitted] = useState(false);
-
-    // Update: Handle Netlify form submission via AJAX
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        
-        const myForm = e.currentTarget;
-        const formData = new FormData(myForm);
-        
-        // Convert FormData to URLSearchParams for x-www-form-urlencoded
-        const searchParams = new URLSearchParams();
-        for (const pair of formData.entries()) {
-            searchParams.append(pair[0], pair[1] as string);
-        }
-
-        try {
-            await fetch("/", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: searchParams.toString(),
-            });
-            setSubmitted(true);
-        } catch (error) {
-            console.error("Form submission error:", error);
-            alert("Sorry, there was an issue sending your message. Please try again or email me directly.");
-        }
-    };
-
-    if (submitted) {
-        return (
-            <div className="min-h-[60vh] flex items-center justify-center px-6 pt-20">
-                <div className="bg-surface border border-green-500/30 p-8 rounded-2xl text-center max-w-md w-full animate-in fade-in zoom-in duration-300">
-                    <div className="w-16 h-16 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <Check size={32} />
-                    </div>
-                    <h2 className="text-2xl font-bold text-white mb-2">Message Sent!</h2>
-                    <p className="text-slate-400 mb-6">Thanks for reaching out. I'll get back to you regarding your {topic} inquiry shortly.</p>
-                    <Button onClick={() => setSubmitted(false)} variant="outline">Send Another</Button>
-                </div>
-            </div>
-        )
-    }
-
-    return (
-        <div className="pt-32 px-6 pb-20">
-            <div className="max-w-xl mx-auto">
-                <div className="text-center mb-10">
-                    <h1 className="text-3xl font-bold text-white mb-4">Let's work together</h1>
-                    <p className="text-slate-400">Tell me about your project or idea.</p>
-                </div>
-
-                <form 
-                    onSubmit={handleSubmit} 
-                    className="bg-surface border border-slate-800 p-8 rounded-2xl shadow-xl space-y-6"
-                    name="contact"
-                    method="post"
-                    data-netlify="true"
-                    data-netlify-honeypot="bot-field"
-                >
-                    {/* Netlify Hidden Fields */}
-                    <input type="hidden" name="form-name" value="contact" />
-                    <input type="hidden" name="bot-field" />
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">What can I help you with?</label>
-                        <div className="relative">
-                            <select 
-                                name="topic" // Added name
-                                value={topic} 
-                                onChange={(e) => setTopic(e.target.value)}
-                                className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-3 appearance-none focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                            >
-                                <option value="Integration">API Integration</option>
-                                <option value="Automation">Business Process Automation</option>
-                                <option value="Custom App">Custom Web Application</option>
-                                <option value="Website">Informational Website</option>
-                                <option value="Other">Other Inquiry</option>
-                            </select>
-                            <ChevronDown className="absolute right-4 top-3.5 text-slate-500 pointer-events-none" size={16} />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-300">Name</label>
-                            <input required type="text" name="name" placeholder="Jane Doe" className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-slate-600" />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-300">Email</label>
-                            <input required type="email" name="email" placeholder="jane@company.com" className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-slate-600" />
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Message</label>
-                        <textarea required name="message" rows={5} placeholder="Tell me a bit more about what you need..." className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-slate-600 resize-none"></textarea>
-                    </div>
-
-                    <Button type="submit" className="w-full justify-center py-3 text-base group">
-                        Send Message <Send size={16} className="group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                </form>
-            </div>
-        </div>
-    );
-};
-
 // --- Main App Component ---
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   return (
     <HashRouter>
       <div className="min-h-screen flex flex-col font-sans selection:bg-primary/30 selection:text-white">
@@ -557,12 +595,25 @@ const App: React.FC = () => {
             <Route path="/" element={<LandingPage />} />
             <Route path="/services" element={<ServicesPage />} />
             <Route path="/resume" element={<ResumePage />} />
-            <Route path="/contact" element={<ContactPage />} />
           </Routes>
         </main>
         <Footer />
+        <ContactModal />
       </div>
     </HashRouter>
+  );
+};
+
+const App: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const openContact = () => setIsOpen(true);
+  const closeContact = () => setIsOpen(false);
+
+  return (
+    <ContactContext.Provider value={{ isOpen, openContact, closeContact }}>
+        <AppContent />
+    </ContactContext.Provider>
   );
 };
 
