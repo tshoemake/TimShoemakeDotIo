@@ -220,7 +220,15 @@ const Navbar: React.FC = () => {
           {/* Logo Section */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="h-14 w-14 flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105">
-                 <img src="https://timshoemake.io/wp-content/uploads/2017/07/shoemaker_repair_blue@2x-2.png" alt="Tim Shoemake Logo" className="w-full h-full object-contain" />
+                 <img 
+                    src="/logo.png" 
+                    alt="Tim Shoemake Logo" 
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                        e.currentTarget.src = "https://timshoemake.io/wp-content/uploads/2017/07/shoemaker_repair_blue@2x-2.png";
+                        e.currentTarget.onerror = null;
+                    }}
+                 />
             </div>
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
               TimShoemake<span className="text-primary">.io</span>
@@ -457,7 +465,7 @@ const LandingPage: React.FC = () => {
                             <Globe size={24} />
                         </div>
                         <h3 className="text-xl font-bold text-white mb-2">Business Landing Pages</h3>
-                        <p className="text-slate-400 mb-6">High-performance sites designed to convert. I build fast, SEO-optimized landing pages that generate leads and grow your business. Showcasing work for <a href="https://crossfit601.com" className="text-primary hover:underline">CrossFit 601</a>, <a href="https://mapinme.com" className="text-primary hover:underline">MapInMe</a>, and <a href="https://ser247.com" className="text-primary hover:underline">Southeastern Restoration</a>.</p>
+                        <p className="text-slate-400 mb-6">High-performance sites designed to convert. I build fast, SEO-optimized landing pages that generate leads and grow your business. Showcasing work for <a href="https://crossfit601.com" className="text-primary hover:underline">CrossFit 601</a>, <a href="https://mapinme.com" className="text-primary hover:underline">MapInMe</a>, and <a href="https://ser247.com" className="text-primary hover:underline">SER247</a>.</p>
                         <button onClick={openContact} className="text-primary hover:text-white transition-colors cursor-pointer font-medium text-sm flex items-center gap-1 focus:outline-none">Start a project <ArrowRight size={14} /></button>
                     </div>
                     <InfoSiteDemo />
