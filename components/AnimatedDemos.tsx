@@ -84,15 +84,26 @@ export const AutomationDemo: React.FC = () => {
   return (
     <DemoContainer title="Auto-Escalation Flow">
       <div className="relative w-full h-full p-4">
-        {/* SVG Connections */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
-           {/* Line 1: Top Left to Center */}
-           <path d="M 80 40 L 50% 40%" stroke="#334155" strokeWidth="2" fill="none" className="animate-pulse" />
-           {/* Line 2: Center to Bottom Right */}
-           <path d="M 50% 40% L calc(100% - 80px) calc(100% - 60px)" stroke="#334155" strokeWidth="2" fill="none" className="animate-pulse" style={{ animationDelay: '0.5s' }} />
+        {/* SVG Connections - Using viewBox to map 0-100 to percentages for Paths */}
+        <svg 
+            className="absolute inset-0 w-full h-full pointer-events-none z-0" 
+            viewBox="0 0 100 100" 
+            preserveAspectRatio="none"
+        >
+           {/* Line 1: Box 1 Right (approx 25, 8) -> Box 2 Top (approx 50, 30) 
+               Path: Right -> Down
+           */}
+           <path d="M 25 8 H 50 V 30" stroke="#334155" strokeWidth="1" fill="none" className="animate-pulse" />
+           
+           {/* Line 2: Box 2 Right (approx 55, 40) -> Box 3 Top (approx 85, 45%)
+               Note: Jira Box moved UP to approx 45% Y.
+               Path: Right -> Down. 
+               End point: X=85, Y=45 (Stopping above the box at 45%)
+           */}
+           <path d="M 55 40 H 85 V 45" stroke="#334155" strokeWidth="1" fill="none" className="animate-pulse" style={{ animationDelay: '0.5s' }} />
         </svg>
 
-        {/* Node 1: Ingest (Top Left) */}
+        {/* Node 1: Ingest (Top Left) - Right edge at approx 25% */}
         <div className="absolute top-0 left-4 flex flex-col items-center gap-2 z-10 group">
              <div className="w-24 h-10 bg-slate-800 rounded border border-slate-600 flex items-center justify-center group-hover:border-green-500 transition-colors shadow-lg">
                   <div className="text-xs font-bold text-slate-300">Zendesk</div>
@@ -100,7 +111,7 @@ export const AutomationDemo: React.FC = () => {
               <div className="text-[9px] text-slate-500 uppercase tracking-widest bg-slate-900/80 px-1 rounded">Ingest</div>
         </div>
 
-        {/* Node 2: Transform (Center) */}
+        {/* Node 2: Transform (Center) - Center at 50,40. Width approx 12 (12%). */}
         <div className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2 z-10">
              <div className="w-12 h-12 bg-slate-900 rounded-lg border border-primary flex flex-col items-center justify-center shadow-lg shadow-primary/20">
                   <Settings className="w-5 h-5 text-primary mb-1 animate-spin-slow" />
@@ -108,8 +119,8 @@ export const AutomationDemo: React.FC = () => {
              <div className="text-[9px] text-primary uppercase tracking-widest font-bold bg-slate-900/80 px-1 rounded">Logic</div>
         </div>
 
-        {/* Node 3: Deliver (Bottom Right) */}
-        <div className="absolute bottom-8 right-4 flex flex-col items-center gap-2 z-10 group">
+        {/* Node 3: Deliver (Bottom Right) - Center X approx 85% */}
+        <div className="absolute top-[45%] right-4 flex flex-col items-center gap-2 z-10 group">
              <div className="w-24 h-10 bg-slate-800 rounded border border-slate-600 flex items-center justify-center group-hover:border-blue-500 transition-colors shadow-lg">
                   <div className="text-xs font-bold text-slate-300">Jira</div>
               </div>
@@ -117,12 +128,12 @@ export const AutomationDemo: React.FC = () => {
         </div>
         
         {/* Moving Particles */}
-        <div className="absolute w-2 h-2 bg-green-500 rounded-full blur-[1px] animate-[travel1_2s_linear_infinite]" />
-        <div className="absolute w-2 h-2 bg-blue-500 rounded-full blur-[1px] animate-[travel2_2s_linear_infinite_1s]" />
+        <div className="absolute w-2 h-2 bg-green-500 rounded-full blur-[1px] animate-[travel1_2.5s_linear_infinite]" />
+        <div className="absolute w-2 h-2 bg-blue-500 rounded-full blur-[1px] animate-[travel2_2.5s_linear_infinite_1s]" />
 
         {/* Log Text Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 z-20 flex justify-center">
-             <div className="text-[10px] font-mono text-slate-400 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-1000">
+        <div className="absolute bottom-2 left-0 right-0 z-20 flex justify-center">
+             <div className="text-[9px] font-mono text-slate-400 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-1000">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                 Ticket #123 transformed to Jira issue #1234
              </div>
@@ -131,16 +142,18 @@ export const AutomationDemo: React.FC = () => {
       </div>
        <style>{`
         @keyframes travel1 {
-          0% { top: 30px; left: 60px; opacity: 1; }
-          45% { top: 40%; left: 50%; opacity: 1; }
-          50% { opacity: 0; }
-          100% { opacity: 0; }
+          0% { left: 25%; top: 8%; opacity: 0; }
+          10% { opacity: 1; }
+          40% { left: 50%; top: 8%; }
+          90% { left: 50%; top: 30%; opacity: 1; }
+          100% { left: 50%; top: 30%; opacity: 0; }
         }
         @keyframes travel2 {
-          0% { opacity: 0; }
-          45% { opacity: 0; }
-          50% { top: 40%; left: 50%; opacity: 1; }
-          100% { top: calc(100% - 50px); left: calc(100% - 60px); opacity: 1; }
+          0% { left: 55%; top: 40%; opacity: 0; }
+          10% { opacity: 1; }
+          40% { left: 85%; top: 40%; }
+          90% { left: 85%; top: 45%; opacity: 1; }
+          100% { left: 85%; top: 45%; opacity: 0; }
         }
         .animate-spin-slow {
             animation: spin 3s linear infinite;

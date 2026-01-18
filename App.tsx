@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, createContext } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Menu, X, Github, Linkedin, Mail, ArrowRight, Code, Zap, Layers, Globe, ChevronDown, Send, Check } from 'lucide-react';
+import { Menu, X, Github, Linkedin, Mail, ArrowRight, Code, Zap, Layers, Globe, ChevronDown, Send, Check, Terminal } from 'lucide-react';
+import logoImage from './logo.png';
 import { ApiIntegrationDemo, AutomationDemo, CustomAppDemo, InfoSiteDemo } from './components/AnimatedDemos';
 import { ResumeContent } from './components/ResumeData';
 
@@ -186,6 +187,7 @@ const ContactModal: React.FC = () => {
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [logoError, setLogoError] = useState(false);
   const location = useLocation();
   const { openContact } = useContact();
 
@@ -220,11 +222,18 @@ const Navbar: React.FC = () => {
           {/* Logo Section */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="h-14 w-14 flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105">
-                 <img 
-                    src="/logo.png" 
-                    alt="Tim Shoemake Logo" 
-                    className="w-full h-full object-contain"
-                 />
+                 {!logoError ? (
+                     <img 
+                        src={logoImage} 
+                        alt="Tim Shoemake Logo" 
+                        className="w-full h-full object-contain"
+                        onError={() => setLogoError(true)}
+                    />
+                 ) : (
+                    <div className="w-10 h-10 bg-slate-800 rounded-lg border border-slate-700 flex items-center justify-center">
+                        <Terminal className="text-primary w-6 h-6" />
+                    </div>
+                 )}
             </div>
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
               TimShoemake<span className="text-primary">.io</span>
@@ -290,7 +299,7 @@ const Footer: React.FC = () => (
         © {new Date().getFullYear()} Tim Shoemake. All rights reserved.
       </div>
       <div className="flex items-center gap-2 text-sm text-slate-600">
-        Built with React, Tailwind &amp; Love
+        Built with React, Tailwind &amp; AI
       </div>
     </div>
   </footer>
