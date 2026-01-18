@@ -362,7 +362,7 @@ const ServicesPage: React.FC = () => {
                         </p>
                         <ul className="space-y-2 mb-6">
                             <li className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-green-500" /> Webhook verification & security</li>
-                            <li className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-green-500" /> Event transformation (e.g. Commit -> Notification)</li>
+                            <li className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-green-500" /> Event transformation (e.g. Commit -&gt; Notification)</li>
                             <li className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-green-500" /> Reliable delivery & retry logic</li>
                         </ul>
                     </div>
