@@ -43,6 +43,20 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <meta property="twitter:image" content={new URL(ogImage, Astro.site)} />
   </head>
   <body>
+    <!-- Hidden form for Netlify to detect at build time -->
+    <form name="contact" netlify netlify-honeypot="bot-field" hidden>
+      <input type="text" name="name" />
+      <input type="email" name="email" />
+      <select name="topic">
+        <option value="Integration">API Integration</option>
+        <option value="Automation">Business Process Automation</option>
+        <option value="Custom App">Custom Web Application</option>
+        <option value="Website">Informational Website</option>
+        <option value="Other">Other Inquiry</option>
+      </select>
+      <textarea name="message"></textarea>
+    </form>
+
     <div class="min-h-screen flex flex-col font-sans selection:bg-primary/30 selection:text-white">
       <Navbar client:load />
       <main class="flex-grow">
