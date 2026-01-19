@@ -45,6 +45,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
   <body>
     <!-- Hidden form for Netlify to detect at build time -->
     <form name="contact" netlify netlify-honeypot="bot-field" hidden>
+      <input name="bot-field" />
       <input type="text" name="name" />
       <input type="email" name="email" />
       <select name="topic">
