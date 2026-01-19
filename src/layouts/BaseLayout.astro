@@ -44,7 +44,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
   </head>
   <body>
     <!-- Hidden form for Netlify to detect at build time -->
-    <form name="contact" netlify netlify-honeypot="bot-field" hidden>
+    <form name="contact" netlify netlify-honeypot="bot-field" data-netlify-recaptcha="true" hidden>
       <input type="text" name="name" />
       <input type="email" name="email" />
       <select name="topic">
@@ -55,6 +55,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         <option value="Other">Other Inquiry</option>
       </select>
       <textarea name="message"></textarea>
+      <div data-netlify-recaptcha="true"></div>
     </form>
 
     <div class="min-h-screen flex flex-col font-sans selection:bg-primary/30 selection:text-white">

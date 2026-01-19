@@ -1,14 +1,63 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '@nanostores/react';
 import { X, ChevronDown, Send, Check } from 'lucide-react';
 import { isContactOpen, closeContact } from '../stores/contactStore';
 import Button from './Button';
+
+declare global {
+  interface Window {
+    grecaptcha: any;
+    onRecaptchaLoad: () => void;
+  }
+}
 
 const ContactModal: React.FC = () => {
   const isOpen = useStore(isContactOpen);
   const [topic, setTopic] = useState('Integration');
   const [submitted, setSubmitted] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [recaptchaReady, setRecaptchaReady] = useState(false);
+  const recaptchaRef = useRef<HTMLDivElement>(null);
+  const recaptchaWidgetId = useRef<number | null>(null);
+
+  // Load reCAPTCHA script
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !window.grecaptcha) {
+      window.onRecaptchaLoad = () => setRecaptchaReady(true);
+      const script = document.createElement('script');
+      script.src = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit';
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    } else if (window.grecaptcha) {
+      setRecaptchaReady(true);
+    }
+  }, []);
+
+  // Render reCAPTCHA widget when modal opens
+  useEffect(() => {
+    if (isOpen && recaptchaReady && recaptchaRef.current && recaptchaWidgetId.current === null) {
+      try {
+        // Site key is set via Netlify environment variable at build time
+        const siteKey = import.meta.env.PUBLIC_RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'; // fallback is Google's test key
+        recaptchaWidgetId.current = window.grecaptcha.render(recaptchaRef.current, {
+          sitekey: siteKey,
+          theme: 'dark',
+        });
+      } catch (e) {
+        // Widget might already be rendered
+      }
+    }
+  }, [isOpen, recaptchaReady]);
+
+  // Reset reCAPTCHA when modal closes
+  useEffect(() => {
+    if (!isOpen && recaptchaWidgetId.current !== null && window.grecaptcha) {
+      try {
+        window.grecaptcha.reset(recaptchaWidgetId.current);
+      } catch (e) {}
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -30,8 +79,18 @@ const ContactModal: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Get reCAPTCHA response
+    const recaptchaResponse = window.grecaptcha?.getResponse(recaptchaWidgetId.current);
+    if (!recaptchaResponse) {
+      alert("Please complete the reCAPTCHA verification.");
+      return;
+    }
+
     const myForm = e.currentTarget;
     const formData = new FormData(myForm);
+    formData.append('g-recaptcha-response', recaptchaResponse);
+
     const searchParams = new URLSearchParams();
     for (const pair of formData.entries()) {
       searchParams.append(pair[0], pair[1] as string);
@@ -131,6 +190,11 @@ const ContactModal: React.FC = () => {
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Message</label>
                 <textarea required name="message" rows={4} placeholder="How can I help you?" className="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-lg p-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-slate-600 resize-none"></textarea>
+              </div>
+
+              {/* reCAPTCHA widget */}
+              <div className="flex justify-center">
+                <div ref={recaptchaRef}></div>
               </div>
 
               <Button type="submit" className="w-full justify-center py-3 text-sm group mt-2">
